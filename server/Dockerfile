@@ -1,9 +1,9 @@
 FROM node:20-alpine
 
-WORKDIR /var/www
-COPY ./src /var/www/src
-COPY package.json /var/www
-COPY tsconfig.json /var/www
+WORKDIR /app
+COPY ./src /app/src
+COPY package.json /app
+COPY tsconfig.json /app
 
 RUN npm install
 RUN npm run build
