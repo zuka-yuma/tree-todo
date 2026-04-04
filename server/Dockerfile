@@ -5,7 +5,6 @@ COPY ./src /app/src
 COPY package.json /app
 COPY tsconfig.json /app
 
-RUN npm install
-RUN npm run build
+RUN npm install && npm run build
 
 CMD ["npm", "start"]
