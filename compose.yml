@@ -6,6 +6,8 @@ services:
     env_file: ./.env
     volumes:
       - db:/postgres
+    ports:
+    - "5432:5432"
 
   server:
     build: ./server
