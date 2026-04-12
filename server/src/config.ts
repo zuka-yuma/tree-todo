@@ -1,0 +1,19 @@
+import dotenv from "dotenv";
+dotenv.config();
+
+const jwtSecret = process.env.JWT_SECRET
+const port = process.env.PORT
+const databaseURL = process.env.DATABASE_URL
+if (!jwtSecret) {
+    throw new Error("JWT_SECRET")
+} else if (!port) {
+    throw new Error("PORT")
+} else if (!databaseURL) {
+    throw new Error("DATABASE_URL")
+}
+
+export const config = {
+    jwtSecret: jwtSecret,
+    port: parseInt(port),
+    databaseURL: databaseURL
+}
