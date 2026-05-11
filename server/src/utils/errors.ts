@@ -24,3 +24,9 @@ export class ValidationError extends AppError {
         super(422, "Validation Error")
     }
 }
+
+export class ConflictError extends AppError {
+    constructor() {
+        super(409, "Conflict")
+    }
+}
