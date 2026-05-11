@@ -3,14 +3,16 @@ import cors from '@fastify/cors'
 import cookie from '@fastify/cookie'
 import { config } from './config.js'
 import { AppError } from './utils/errors.js'
+import { authRoutes } from './modules/auth/auth.routes.js'
+import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
 
-const server = fastify()
+const server = fastify().withTypeProvider<TypeBoxTypeProvider>()
 
 server.setErrorHandler((error, request, reply) => {
     if (error instanceof AppError) {
         reply.status(error.statuscode).send({ status:error.message, timeStamp: Date.now()})
     } else {
-        reply.status(500).send({ status:"Server Error", timeStamp: Date.now()})
+        reply.status(500).send({ status: "Server Error", timeStamp: Date.now()})
     }
 })
 
@@ -21,6 +23,10 @@ server.register(cors, {
 
 server.register(cookie, {
     secret: config.jwt.secret
+})
+
+server.register(authRoutes, {
+    prefix: '/api/auth'
 })
 
 server.get('/api/health', async (request, reply) => {
