@@ -19,8 +19,6 @@ export type User = {
     id: string
     email: string
     name: string
-    createAt: Date
-    updateAt: Date
 }
 
 type NodeType = "task" | "phase"
