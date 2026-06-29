@@ -2,6 +2,9 @@
 // TreeNode の phase 版。展開時に StepProgress（進捗ライン）と
 // 番号付きの子ステップを表示する。
 
+import { useSortable } from "@dnd-kit/sortable"
+import { SortableContext } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type { TreeNode as TreeNodeType, Status } from "../types"
 import { useState } from "react"
 import { useTreeContext } from "../contexts/TreeContext"
@@ -74,10 +77,40 @@ export default function PhaseNode({ node }: Props) {
         setEditing(false)
     }
 
+    const {
+        setNodeRef,
+        attributes,
+        listeners,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({
+        id: node.id
+    })
+
     return (
-        <li className="my-1">
+        // DnD: useSortable の setNodeRef を ref に、transform/transition を style に、
+        // isDragging のとき opacity-40 を付ける
+        <li className={`my-1 ${isDragging ? "opacity-40" : ""}`}>
             {/* 背景色とボーダーで phase であることを視覚的に区別 */}
-            <div className="flex items-center gap-2 bg-purple-50 px-2 py-1 rounded border-l-4 border-purple-400">
+            <div className="flex items-center gap-2 bg-purple-50 px-2 py-1 rounded border-l-4 border-purple-400"
+            ref={setNodeRef}
+            style={{
+                transform: CSS.Transform.toString(transform),
+                transition,
+            }}
+            >
+                {/* DnD ドラッグハンドル: ここに {...attributes} {...listeners} を結線する */}
+                <button
+                    type="button"
+                    className="cursor-grab touch-none select-none text-gray-400 hover:text-gray-600 active:cursor-grabbing px-1"
+                    aria-label="ドラッグして並び替え"
+                    {...attributes}
+                    {...listeners}
+                >
+                    ⠿
+                </button>
+
                 <span className="text-xs bg-purple-500 text-white px-2 py-0.5 rounded">Phase</span>
 
                 {node.children.length > 0 && (
@@ -126,9 +159,11 @@ export default function PhaseNode({ node }: Props) {
                 <div className="ml-4 mt-1">
                     <StepProgress steps={node.children} />
                     <ol className="ml-4 list-decimal">
-                        {node.children.map(child => (
-                            <NodeRenderer key={child.id} node={child} />
-                        ))}
+                        <SortableContext items={node.children.map(children => children.id)}>
+                            {node.children.map(child => (
+                                <NodeRenderer key={child.id} node={child} />
+                            ))}
+                        </SortableContext>
                     </ol>
                 </div>
             )}

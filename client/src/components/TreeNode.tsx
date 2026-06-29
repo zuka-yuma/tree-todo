@@ -1,6 +1,9 @@
 // task ノードを描画するコンポーネント。
 // ステータス循環、タイトルインライン編集、子追加・削除ボタンを持つ。
 
+import { useSortable } from "@dnd-kit/sortable"
+import { SortableContext } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type { TreeNode as TreeNodeType, Status } from "../types"
 import { useState } from "react"
 import { useTreeContext } from "../contexts/TreeContext"
@@ -73,9 +76,39 @@ export default function TreeNode({ node }: Props) {
         setEditing(false)
     }
 
+    const {
+            setNodeRef,
+            attributes,
+            listeners,
+            transform,
+            transition,
+            isDragging,
+        } = useSortable({
+            id: node.id
+        })
+
     return (
-        <li className="my-1">
-            <div className="flex items-center gap-2">
+        // DnD: useSortable の setNodeRef を ref に、transform/transition を style に、
+        // isDragging のとき opacity-40 を付ける
+        <li className={`my-1 ${isDragging ? "opacity-40" : ""}`}>
+            <div className="flex items-center gap-2"
+            ref={setNodeRef}
+            style={{
+                transform: CSS.Transform.toString(transform),
+                transition,
+            }}
+            >
+                {/* DnD ドラッグハンドル: ここに {...attributes} {...listeners} を結線する */}
+                <button
+                    type="button"
+                    className="cursor-grab touch-none select-none text-gray-400 hover:text-gray-600 active:cursor-grabbing px-1"
+                    aria-label="ドラッグして並び替え"
+                    {...attributes}
+                    {...listeners}
+                >
+                    ⠿
+                </button>
+
                 {node.children.length > 0 && (
                     <button type="button" onClick={() => setCollapsed(!collapsed)}>
                         {collapsed ? "▶︎" : "▼"}
@@ -120,9 +153,11 @@ export default function TreeNode({ node }: Props) {
 
             {!collapsed && node.children.length > 0 && (
                 <ul className="ml-4">
-                    {node.children.map(child => (
-                        <NodeRenderer key={child.id} node={child} />
-                    ))}
+                    <SortableContext items={node.children.map(children => children.id)}>
+                        {node.children.map(child => (
+                            <NodeRenderer key={child.id} node={child} />
+                        ))}
+                    </SortableContext>
                 </ul>
             )}
         </li>
