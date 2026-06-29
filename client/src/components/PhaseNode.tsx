@@ -158,13 +158,13 @@ export default function PhaseNode({ node }: Props) {
             {!collapsed && node.children.length > 0 && (
                 <div className="ml-4 mt-1">
                     <StepProgress steps={node.children} />
-                    <ol className="ml-4 list-decimal">
-                        <SortableContext items={node.children.map(children => children.id)}>
+                    <SortableContext items={node.children.map(children => children.id)}>
+                        <ol className="ml-4 list-decimal">
                             {node.children.map(child => (
                                 <NodeRenderer key={child.id} node={child} />
                             ))}
-                        </SortableContext>
-                    </ol>
+                        </ol>
+                    </SortableContext>
                 </div>
             )}
         </li>

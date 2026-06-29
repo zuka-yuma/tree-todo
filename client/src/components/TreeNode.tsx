@@ -152,13 +152,13 @@ export default function TreeNode({ node }: Props) {
             {detailOpen && <NodeDetail node={node} />}
 
             {!collapsed && node.children.length > 0 && (
-                <ul className="ml-4">
-                    <SortableContext items={node.children.map(children => children.id)}>
+                <SortableContext items={node.children.map(children => children.id)}>
+                    <ul className="ml-4">
                         {node.children.map(child => (
                             <NodeRenderer key={child.id} node={child} />
                         ))}
-                    </SortableContext>
-                </ul>
+                    </ul>
+                </SortableContext>
             )}
         </li>
     )
