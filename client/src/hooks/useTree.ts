@@ -29,6 +29,25 @@ export function useTree() {
             }
         })
     }
+
+    const removeFromTree = (children: TreeNode[], targetId: string) => {
+        return children.filter(c => c.id !== targetId).map(c => ({ ...c, children: removeFromTree(c.children,targetId) }))
+    }
+
+    const insertIntoTree = (children: TreeNode[], parentId: string, node: TreeNode) => {
+        return children.map(child =>
+            child.id === parentId ? { ...child, children: [...child.children, node] } : { ...child, children: insertIntoTree(child.children, parentId, node)}
+        )
+    }
+
+    const found = (nodes: TreeNode[], id: string): TreeNode | null => {
+        for (const node of nodes) {
+            if (node.id === id) return node
+            const target = found(node.children, id)
+            if (target !== null) return target
+        }
+        return null
+    }
     
     async function addNode(input: CreateNodeInput) {
         await create(input)
@@ -46,6 +65,11 @@ export function useTree() {
     }
 
     async function moveNode(id: string, input: MoveNodeInput) {
+        const node = {...found(tree, id), parentId: input.parentId}
+        setTree(prev => {
+            const removedPrev = removeFromTree(prev, id)
+            return input.parentId === null ? [...removedPrev, node] : insertIntoTree(removedPrev, input.parentId, node)
+        })
         await move(id, input)
         await refetch()
     }
@@ -62,9 +86,9 @@ export function useTree() {
 
     async function reorderSteps(parentId: string | null, input: ReorderInput) {
         if (parentId === null) {
-            setTree(input.orderedIds.map(id => tree.find(n => n.id === id)) as TreeNode[])
+            setTree(prev => input.orderedIds.map(id => prev.find(n => n.id === id)) as TreeNode[])
         } else {
-            setTree(rebuildTree(tree, parentId, input.orderedIds) as TreeNode[])
+            setTree(prev => rebuildTree(prev, parentId, input.orderedIds) as TreeNode[])
         }
         await apiReorderSteps(parentId, input)
         await refetch()
@@ -72,9 +96,9 @@ export function useTree() {
 
     async function reorderNodes(parentId: string | null, input: ReorderInput) {
         if (parentId === null) {
-            setTree(input.orderedIds.map(id => tree.find(n => n.id === id)) as TreeNode[])
+            setTree(prev => input.orderedIds.map(id => prev.find(n => n.id === id)) as TreeNode[])
         } else {
-            setTree(rebuildTree(tree, parentId, input.orderedIds) as TreeNode[])
+            setTree(prev => rebuildTree(prev, parentId, input.orderedIds) as TreeNode[])
         }
         await apiReorderNodes(parentId, input)
         await refetch()
