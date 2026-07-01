@@ -3,7 +3,7 @@
 // 番号付きの子ステップを表示する。
 
 import { useSortable } from "@dnd-kit/sortable"
-import { SortableContext } from "@dnd-kit/sortable";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { TreeNode as TreeNodeType, Status } from "../types"
 import { useState } from "react"
@@ -15,6 +15,7 @@ import NodeDetail from "./NodeDetail"
 
 interface Props {
     node: TreeNodeType
+    depth: number
 }
 
 const statusColor = (status: Status) => {
@@ -41,7 +42,7 @@ const nextStatus = (status: Status): Status => {
     }
 }
 
-export default function PhaseNode({ node }: Props) {
+export default function PhaseNode({ node, depth }: Props) {
     const { updateNode, removeNode } = useTreeContext()
     const openAdd = useAddNode()
     const [editing, setEditing] = useState<boolean>(false)
@@ -150,10 +151,12 @@ export default function PhaseNode({ node }: Props) {
             {!node.collapse && node.children.length > 0 && (
                 <div className="ml-6 mt-2">
                     <StepProgress steps={node.children} />
-                    <SortableContext items={node.children.map(children => children.id)}>
-                        <ol className="flex flex-col md:flex-row md:items-start gap-1 md:gap-4 mt-1 md:mt-2">
+                    <SortableContext items={node.children.map(children => children.id)} strategy={depth === 0 ? verticalListSortingStrategy : undefined}>
+                        <ol className={depth === 0
+                            ? "flex flex-col gap-1 mt-2"
+                            : "flex flex-col md:flex-row md:items-start gap-1 md:gap-4 mt-1 md:mt-2"}>
                             {node.children.map(child => (
-                                <NodeRenderer key={child.id} node={child} />
+                                <NodeRenderer key={child.id} node={child} depth={depth + 1} />
                             ))}
                         </ol>
                     </SortableContext>

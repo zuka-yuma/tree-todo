@@ -94,9 +94,11 @@ export default function TreeView({hideDone, rootId}: Props) {
         const isLast = overSiblings[overSiblings.length - 1]?.id === overId
         const overRect = event.over.rect
         const activeRect = event.active.rect.current.translated ?? event.active.rect.current.initial
+        const isDesktop = window.matchMedia("(min-width: 768px)").matches
+        const isHorizontal = isDesktop && overParent != null && overParent.id !== rootId
         if (activeRect === null) return "before"
-        const center = activeRect.top + activeRect.height / 2
-        const ratio = (center - overRect.top) / overRect.height
+        const center = isHorizontal ? activeRect.left + activeRect.width / 2 : activeRect.top + activeRect.height / 2
+        const ratio = isHorizontal ? (center - overRect.left) / overRect.width : (center - overRect.top) / overRect.height
         if (overNode.collapse === false && overNode.children.length > 0 && !isLast) {
             return ratio < 1/4 ? "before" : "inside"
         } else {
@@ -138,13 +140,13 @@ export default function TreeView({hideDone, rootId}: Props) {
         >
             <SortableContext items={[visibleRoot.id]}>
                 <ul>
-                    <NodeRenderer node={visibleRoot} />
+                    <NodeRenderer node={visibleRoot} depth={0} />
                 </ul>
             </SortableContext>
             <DragOverlay dropAnimation={null}>
                 {activeNode ? (
                     <div className="cursor-grabbing rounded-lg bg-white shadow-2xl ring-1 ring-black/5 opacity-90">
-                        <NodeRenderer node={{ ...activeNode, children: [] }} />
+                        <NodeRenderer node={{ ...activeNode, children: [] }} depth={0} />
                     </div>
                 ) : null}
             </DragOverlay>
