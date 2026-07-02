@@ -54,39 +54,39 @@ export default function AddNodeModal({ parentId, onClose }: Props) {
 
     const dateFieldClass = (w: string) =>
         `${w} border rounded px-1 text-center focus:outline-none focus:ring-2 ${
-            dateError ? "border-red-500 border-2 focus:ring-red-300" : "border-gray-300 focus:ring-blue-300"}`;
+            dateError ? "border-red-500 border-2 focus:ring-red-300" : "border-slate-600 bg-slate-700 text-slate-100 focus:ring-blue-300"}`;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-            <div className="w-80 rounded-lg bg-white p-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
-                <h2 className="mb-3 text-lg font-semibold text-gray-800">ノードを追加</h2>
+            <div className="w-80 rounded-lg bg-slate-800 p-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+                <h2 className="mb-3 text-lg font-semibold text-slate-100">ノードを追加</h2>
 
                 <div className="mb-3 flex gap-2">
                     <button type="button" onClick={() => setNodeType("task")}
-                        className={`flex-1 rounded px-3 py-1 ${nodeType === "task" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700"}`}>
+                        className={`flex-1 rounded px-3 py-1 ${nodeType === "task" ? "bg-blue-500 text-white" : "bg-slate-700 text-slate-200"}`}>
                         タスク
                     </button>
                     <button type="button" onClick={() => setNodeType("phase")}
-                        className={`flex-1 rounded px-3 py-1 ${nodeType === "phase" ? "bg-purple-500 text-white" : "bg-gray-200 text-gray-700"}`}>
+                        className={`flex-1 rounded px-3 py-1 ${nodeType === "phase" ? "bg-purple-500 text-white" : "bg-slate-700 text-slate-200"}`}>
                         フェーズ
                     </button>
                 </div>
 
                 <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="タイトル" autoFocus
                     onKeyDown={(e) => { if (e.key === "Enter") handleSubmit() }}
-                    className="mb-3 w-full rounded border border-gray-300 px-2 py-1" />
+                    className="mb-3 w-full rounded border border-slate-600 bg-slate-700 text-slate-100 placeholder-slate-400 px-2 py-1" />
 
-                <label className="mb-3 flex items-center justify-between text-sm text-gray-700">
+                <label className="mb-3 flex items-center justify-between text-sm text-slate-200">
                     優先度
                     <select value={priority} onChange={(e) => setPriority(e.target.value as Priority)}
-                        className="rounded border border-gray-300 px-2 py-1">
+                        className="rounded border border-slate-600 bg-slate-700 text-slate-100 px-2 py-1">
                         <option value="high">高</option>
                         <option value="medium">中</option>
                         <option value="low">低</option>
                     </select>
                 </label>
 
-                <div className="mb-4 flex items-center justify-between text-sm text-gray-700">
+                <div className="mb-4 flex items-center justify-between text-sm text-slate-200">
                     期限
                     <span className="inline-flex items-center gap-1">
                         <input type="text" inputMode="numeric" maxLength={4} ref={yearRef} placeholder="YYYY"
@@ -116,7 +116,7 @@ export default function AddNodeModal({ parentId, onClose }: Props) {
 
                 <div className="flex justify-end gap-2">
                     <button type="button" onClick={onClose}
-                        className="rounded bg-gray-200 px-3 py-1 text-gray-700 hover:bg-gray-300">
+                        className="rounded bg-slate-700 px-3 py-1 text-slate-200 hover:bg-slate-600">
                         キャンセル
                     </button>
                     <button type="button" onClick={handleSubmit} disabled={!title.trim()}

@@ -33,6 +33,7 @@ export default function TreeView({hideDone, rootId}: Props) {
         const overParent = foundParent(tree, overId)
         const position = getDropPosition(event)
         if (position === "after" || position === "before") {
+            if (overNode.id === rootId) return
             const destSiblings = overParent ? overParent.children : tree
             const ids = destSiblings.map(n => n.id).filter(id => id !== activeId)
             const overIndex = ids.indexOf(overId)
@@ -57,7 +58,7 @@ export default function TreeView({hideDone, rootId}: Props) {
                     await reorderNodes(overParent.id, {orderedIds})
                 }
             }
-        } else if (position === "inside") {
+        } else if (position === "inside") {            
             if (found(activeNode.children, overId) !== null) return
             const overChildIds = overNode.children.map(n => n.id).filter(id => id !== activeId)
             const orderedIds = overNode.collapse ? [activeId, ...overChildIds] : [...overChildIds, activeId]

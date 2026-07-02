@@ -81,64 +81,68 @@ export default function TreeNode({ node, depth }: Props) {
         // DnD: useSortable の setNodeRef を ref に、transform/transition を style に、
         // isDragging のとき opacity-40 を付ける
         <li className={`flex flex-col items-start ${isDragging ? "opacity-40" : ""}`}>
-            <div className="flex items-center gap-2"
-            ref={setNodeRef}
+            <div ref={setNodeRef}
             style={{
                 transform: CSS.Transform.toString(transform),
                 transition,
             }}
+            className={`rounded bg-slate-800 text-slate-100 hover:bg-slate-700 ${node.children.length > 0 ? "border-2 border-sky-600" : "border border-slate-700"}`}
             >
-                {/* DnD ドラッグハンドル: ここに {...attributes} {...listeners} を結線する */}
-                <button
-                    type="button"
-                    className="cursor-grab touch-none select-none text-gray-400 hover:text-gray-600 active:cursor-grabbing px-1"
-                    aria-label="ドラッグして並び替え"
-                    {...attributes}
-                    {...listeners}
+                {/* 上段: ハンドル・ステータス・タイトル。クリックで展開/折りたたみ */}
+                <div
+                    className={`flex items-center gap-2 px-2 py-1 ${node.children.length > 0 ? "cursor-pointer" : ""}`}
+                    onClick={() => { if (node.children.length > 0) updateNode(node.id, { collapse: !node.collapse }) }}
                 >
-                    ⠿
-                </button>
-
-                {node.children.length > 0 && (
-                    <button type="button" onClick={() => {
-                        updateNode(node.id, {collapse: !node.collapse})
-                        }}>
-                        {node.collapse ? "▶︎" : "▼"}
+                    <button
+                        type="button"
+                        className="cursor-grab touch-none select-none text-slate-500 hover:text-slate-300 active:cursor-grabbing px-1"
+                        aria-label="ドラッグして並び替え"
+                        onClick={(e) => e.stopPropagation()}
+                        {...attributes}
+                        {...listeners}
+                    >
+                        ⠿
                     </button>
-                )}
 
-                {/* ステータスドット: <button> でラップしてクリックで循環できるようにする */}
-                <button
-                    type="button"
-                    onClick={handleStatusClick}
-                    className={`inline-block w-3 h-3 rounded-full ${statusColor(node.status)}`}
-                    aria-label="status"
-                />
-
-                {editing ? (
-                    <input
-                        value={draft}
-                        onChange={(e) => setDraft(e.target.value)}
-                        onBlur={saveTitle}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter") saveTitle()
-                            if (e.key === "Escape") cancelTitle()
-                        }}
-                        autoFocus
+                    {/* ステータスドット: クリックで状態を循環（展開はしない） */}
+                    <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleStatusClick() }}
+                        className={`inline-block w-3 h-3 rounded-full ${statusColor(node.status)}`}
+                        aria-label="status"
                     />
-                ) : (
-                    <span onClick={() => setEditing(true)}>{node.title}</span>
-                )}
 
-                <span className={`text-xs px-2 py-0.5 rounded ${priorityColor(node.priority)}`}>
-                    {node.priority}
-                </span>
+                    {editing ? (
+                        <input
+                            value={draft}
+                            onChange={(e) => setDraft(e.target.value)}
+                            onBlur={saveTitle}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") saveTitle()
+                                if (e.key === "Escape") cancelTitle()
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            autoFocus
+                            className="bg-slate-700 text-slate-100 border border-slate-600 rounded px-1"
+                        />
+                    ) : (
+                        <span onDoubleClick={() => setEditing(true)}>{node.title}</span>
+                    )}
+                </div>
 
-                <button type="button" onClick={() => setDetailOpen(!detailOpen)} className="text-xs ml-2">
-                    {detailOpen ? "詳細▲" : "詳細▼"}
-                </button>
-                <button type="button" onClick={() => openAdd(node.id)} className="text-xs ml-2">＋子</button>
-                <button type="button" onClick={handleRemove} className="text-xs text-red-500">削除</button>
+                {/* 下段: 優先度・詳細・追加・削除 */}
+                <div className="flex items-center gap-2 px-2 pb-1">
+                    <span className={`text-xs px-2 py-0.5 rounded ${priorityColor(node.priority)}`}>
+                        {node.priority}
+                    </span>
+                    <button type="button" onClick={() => setDetailOpen(!detailOpen)} className="text-xs">
+                        {detailOpen ? "詳細▲" : "詳細▼"}
+                    </button>
+                    <button type="button" onClick={() => openAdd(node.id)} className="text-xs">＋</button>
+                    {depth !== 0 && (
+                        <button type="button" onClick={handleRemove} className="text-xs text-red-400">－</button>
+                    )}
+                </div>
             </div>
 
             {detailOpen && <NodeDetail node={node} />}

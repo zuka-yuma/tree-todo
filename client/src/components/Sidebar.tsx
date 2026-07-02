@@ -13,7 +13,7 @@ interface Props {
     open: boolean;
 }
 
-function RootItem({ node, selected, onSelect }: { node: TreeNode; selected: boolean; onSelect: (id: string) => void }) {
+function RootItem({ node, selected, onSelect, onDelete }: { node: TreeNode; selected: boolean; onSelect: (id: string) => void; onDelete: (id: string) => void }) {
     const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({ id: node.id });
     return (
         <li ref={setNodeRef}
@@ -24,13 +24,20 @@ function RootItem({ node, selected, onSelect }: { node: TreeNode; selected: bool
             <button {...attributes} {...listeners}
                 className="cursor-grab touch-none text-slate-500 hover:text-slate-300" aria-label="並び替え">⠿</button>
             <span className="truncate">{node.title}</span>
+            <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(node.id); }}
+                className="ml-auto shrink-0 text-slate-500 hover:text-red-400" aria-label="削除">－</button>
         </li>
     );
 }
 
 export default function Sidebar({ selectedRootId, onSelect, open }: Props) {
-    const { tree, reorderNodes } = useTreeContext();
+    const { tree, reorderNodes, removeNode } = useTreeContext();
     const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+
+    const handleDelete = (id: string) => {
+        if (!window.confirm("このルートを削除しますか？配下も全て削除されます")) return;
+        removeNode(id);
+    };
 
     const handleDragEnd = async (event: DragEndEvent) => {
         const { active, over } = event;
@@ -47,7 +54,7 @@ export default function Sidebar({ selectedRootId, onSelect, open }: Props) {
                 <SortableContext items={tree.map(n => n.id)} strategy={verticalListSortingStrategy}>
                     <ul className="flex flex-col gap-1">
                         {tree.map(node => (
-                            <RootItem key={node.id} node={node} selected={node.id === selectedRootId} onSelect={onSelect} />
+                            <RootItem key={node.id} node={node} selected={node.id === selectedRootId} onSelect={onSelect} onDelete={handleDelete} />
                         ))}
                     </ul>
                 </SortableContext>

@@ -15,13 +15,13 @@ export default function Toolbar({ hideDone, onToggleHideDone, onToggleSidebar }:
     const { user, logout } = useAuth()
 
     return (
-        <div className="flex items-center justify-between gap-2 px-3 py-2 bg-gray-100 border-b">
+        <div className="flex items-center justify-between gap-2 px-3 py-2 bg-slate-800 border-b border-slate-700 text-slate-200">
             <div className="flex items-center gap-1.5 min-w-0 overflow-x-auto">
                 <button
                     type="button"
                     onClick={onToggleSidebar}
                     aria-label="サイドバー表示切り替え"
-                    className="md:hidden shrink-0 px-2 py-1 rounded hover:bg-gray-200"
+                    className="md:hidden shrink-0 px-2 py-1 rounded hover:bg-slate-700"
                 >
                     ☰
                 </button>
@@ -36,18 +36,18 @@ export default function Toolbar({ hideDone, onToggleHideDone, onToggleSidebar }:
                     type="button"
                     onClick={onToggleHideDone}
                     className={`shrink-0 whitespace-nowrap px-3 py-1 rounded ${hideDone
-                        ? "bg-gray-700 text-white"
-                        : "bg-gray-200 hover:bg-gray-300"}`}
+                        ? "bg-slate-600 text-white"
+                        : "bg-slate-700 text-slate-200 hover:bg-slate-600"}`}
                 >
                     {hideDone ? "完了表示" : "完了を隠す"}
                 </button>
             </div>
             <div className="flex items-center gap-2 shrink-0 text-sm">
-                <span className="hidden sm:inline text-gray-600">{user?.name}</span>
+                <span className="hidden sm:inline text-slate-400">{user?.name}</span>
                 <button
                     type="button"
                     onClick={logout}
-                    className="whitespace-nowrap px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                    className="whitespace-nowrap px-2 py-1 bg-slate-700 text-slate-200 rounded hover:bg-slate-600"
                 >
                     ログアウト
                 </button>

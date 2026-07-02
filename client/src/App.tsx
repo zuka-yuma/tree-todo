@@ -28,7 +28,7 @@ function App() {
   return (
     <TreeProvider>
       <AddNodeProvider>
-      <div className="flex flex-col h-screen">
+      <div className="flex flex-col h-screen bg-slate-950 text-slate-200">
         <Toolbar
           hideDone={hideDone}
           onToggleHideDone={() => setHideDone(v => !v)}
