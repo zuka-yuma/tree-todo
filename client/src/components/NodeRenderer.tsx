@@ -7,11 +7,12 @@ import PhaseNode from "./PhaseNode"
 
 interface Props {
     node: TreeNodeType
+    depth: number
 }
 
-export default function NodeRenderer({ node }: Props) {
+export default function NodeRenderer({ node, depth }: Props) {
     if (node.nodetype === "phase") {
-        return <PhaseNode node={node} />
+        return <PhaseNode node={node} depth={depth} />
     }
-    return <TreeNode node={node} />
+    return <TreeNode node={node} depth={depth} />
 }

@@ -1,14 +1,19 @@
 // task ノードを描画するコンポーネント。
 // ステータス循環、タイトルインライン編集、子追加・削除ボタンを持つ。
 
+import { useSortable } from "@dnd-kit/sortable"
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type { TreeNode as TreeNodeType, Status } from "../types"
 import { useState } from "react"
 import { useTreeContext } from "../contexts/TreeContext"
+import { useAddNode } from "../contexts/AddNodeContext"
 import NodeRenderer from "./NodeRenderer"
 import NodeDetail from "./NodeDetail"
 
 interface Props {
     node: TreeNodeType
+    depth: number
 }
 
 const statusColor = (status: Status) => {
@@ -35,27 +40,15 @@ const nextStatus = (status: Status): Status => {
     }
 }
 
-export default function TreeNode({ node }: Props) {
-    const { addNode, updateNode, removeNode } = useTreeContext()
-
-    const [collapsed, setCollapsed] = useState<boolean>(node.collapse)
+export default function TreeNode({ node, depth }: Props) {
+    const { updateNode, removeNode } = useTreeContext()
+    const openAdd = useAddNode()
     const [editing, setEditing] = useState<boolean>(false)
     const [draft, setDraft] = useState<string>(node.title)
     const [detailOpen, setDetailOpen] = useState<boolean>(false)
 
     const handleStatusClick = async () => {
         await updateNode(node.id, { status: nextStatus(node.status)})
-    }
-
-    const handleAddChild = async () => {
-        const title = window.prompt("子ノードのタイトル")
-        if (!title) return
-        await addNode({
-            title,
-            parentId: node.id,
-            nodeType: "task",
-            priority: "medium",
-        })
     }
 
     const handleRemove = async () => {
@@ -73,57 +66,97 @@ export default function TreeNode({ node }: Props) {
         setEditing(false)
     }
 
+    const {
+            setNodeRef,
+            attributes,
+            listeners,
+            transform,
+            transition,
+            isDragging,
+        } = useSortable({
+            id: node.id
+        })
+
     return (
-        <li className="my-1">
-            <div className="flex items-center gap-2">
-                {node.children.length > 0 && (
-                    <button type="button" onClick={() => setCollapsed(!collapsed)}>
-                        {collapsed ? "▶︎" : "▼"}
+        // DnD: useSortable の setNodeRef を ref に、transform/transition を style に、
+        // isDragging のとき opacity-40 を付ける
+        <li className={`flex flex-col items-start ${isDragging ? "opacity-40" : ""}`}>
+            <div ref={setNodeRef}
+            style={{
+                transform: CSS.Transform.toString(transform),
+                transition,
+            }}
+            className={`rounded bg-slate-800 text-slate-100 hover:bg-slate-700 ${node.children.length > 0 ? "border-2 border-sky-600" : "border border-slate-700"}`}
+            >
+                {/* 上段: ハンドル・ステータス・タイトル。クリックで展開/折りたたみ */}
+                <div
+                    className={`flex items-center gap-2 px-2 py-1 ${node.children.length > 0 ? "cursor-pointer" : ""}`}
+                    onClick={() => { if (node.children.length > 0) updateNode(node.id, { collapse: !node.collapse }) }}
+                >
+                    <button
+                        type="button"
+                        className="cursor-grab touch-none select-none text-slate-500 hover:text-slate-300 active:cursor-grabbing px-1"
+                        aria-label="ドラッグして並び替え"
+                        onClick={(e) => e.stopPropagation()}
+                        {...attributes}
+                        {...listeners}
+                    >
+                        ⠿
                     </button>
-                )}
 
-                {/* ステータスドット: <button> でラップしてクリックで循環できるようにする */}
-                <button
-                    type="button"
-                    onClick={handleStatusClick}
-                    className={`inline-block w-3 h-3 rounded-full ${statusColor(node.status)}`}
-                    aria-label="status"
-                />
-
-                {editing ? (
-                    <input
-                        value={draft}
-                        onChange={(e) => setDraft(e.target.value)}
-                        onBlur={saveTitle}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter") saveTitle()
-                            if (e.key === "Escape") cancelTitle()
-                        }}
-                        autoFocus
+                    {/* ステータスドット: クリックで状態を循環（展開はしない） */}
+                    <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleStatusClick() }}
+                        className={`inline-block w-3 h-3 rounded-full ${statusColor(node.status)}`}
+                        aria-label="status"
                     />
-                ) : (
-                    <span onClick={() => setEditing(true)}>{node.title}</span>
-                )}
 
-                <span className={`text-xs px-2 py-0.5 rounded ${priorityColor(node.priority)}`}>
-                    {node.priority}
-                </span>
+                    {editing ? (
+                        <input
+                            value={draft}
+                            onChange={(e) => setDraft(e.target.value)}
+                            onBlur={saveTitle}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") saveTitle()
+                                if (e.key === "Escape") cancelTitle()
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            autoFocus
+                            className="bg-slate-700 text-slate-100 border border-slate-600 rounded px-1"
+                        />
+                    ) : (
+                        <span onDoubleClick={() => setEditing(true)}>{node.title}</span>
+                    )}
+                </div>
 
-                <button type="button" onClick={() => setDetailOpen(!detailOpen)} className="text-xs ml-2">
-                    {detailOpen ? "詳細▲" : "詳細▼"}
-                </button>
-                <button type="button" onClick={handleAddChild} className="text-xs ml-2">＋子</button>
-                <button type="button" onClick={handleRemove} className="text-xs text-red-500">削除</button>
+                {/* 下段: 優先度・詳細・追加・削除 */}
+                <div className="flex items-center gap-2 px-2 pb-1">
+                    <span className={`text-xs px-2 py-0.5 rounded ${priorityColor(node.priority)}`}>
+                        {node.priority}
+                    </span>
+                    <button type="button" onClick={() => setDetailOpen(!detailOpen)} className="text-xs">
+                        {detailOpen ? "詳細▲" : "詳細▼"}
+                    </button>
+                    <button type="button" onClick={() => openAdd(node.id)} className="text-xs">＋</button>
+                    {depth !== 0 && (
+                        <button type="button" onClick={handleRemove} className="text-xs text-red-400">－</button>
+                    )}
+                </div>
             </div>
 
             {detailOpen && <NodeDetail node={node} />}
 
-            {!collapsed && node.children.length > 0 && (
-                <ul className="ml-4">
-                    {node.children.map(child => (
-                        <NodeRenderer key={child.id} node={child} />
-                    ))}
-                </ul>
+            {!node.collapse && node.children.length > 0 && (
+                <SortableContext items={node.children.map(children => children.id)} strategy={depth === 0 ? verticalListSortingStrategy : undefined}>
+                    <ul className={depth === 0
+                        ? "flex flex-col gap-1 ml-4 mt-1"
+                        : "flex flex-col md:flex-row md:items-start gap-1 md:gap-4 ml-4 md:ml-6 mt-1 md:mt-2"}>
+                        {node.children.map(child => (
+                            <NodeRenderer key={child.id} node={child} depth={depth + 1} />
+                        ))}
+                    </ul>
+                </SortableContext>
             )}
         </li>
     )
